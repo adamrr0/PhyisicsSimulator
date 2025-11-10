@@ -1,0 +1,10 @@
+
+dx= circle2 position - circle1 position (X-axis)
+dy = circle2 position - circle1 position (Y-axis)
+
+distance = sqrt(dx * dx + dy * dy)
+
+if distance < circle1 radius + circle2 radius then
+{
+	
+}
