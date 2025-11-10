@@ -42,7 +42,7 @@ public:
 
 	}
 
-	void drawCircle(float centerX, float centerY, float radius, int res, int slices, int stacks)
+	void drawCircle(float centerX, float centerY, float radius, int res)
 	{
 		glColor3f(color[0], color[1], color[2]);
 
@@ -51,18 +51,10 @@ public:
 
 		for (int i = 0; i <= res; ++i)
 		{
-			for (int j = 0; j <= slices; j++)
-			{
-
-
-				float theta = (float)j / slices * 2.0f * 3.14159f;
-
-
 				float angle = 2.0f * 3.14159f * (static_cast<float>(i) / res); // Angle in radians
 				float x = centerX + (radius * cos(angle));
 				float y = centerY + (radius * sin(angle));
 				glVertex2d(x, y);
-			}
 		}
 		glEnd();
 	}
