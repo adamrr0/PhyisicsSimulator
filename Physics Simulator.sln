@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36401.2 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Phyisics Simulator", "Phyisics Simulator\Phyisics Simulator.vcxproj", "{91E5DF19-40CB-4A55-B36E-12B20CF3B163}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Physics Simulator", "Physics Simulator\Physics Simulator.vcxproj", "{91E5DF19-40CB-4A55-B36E-12B20CF3B163}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

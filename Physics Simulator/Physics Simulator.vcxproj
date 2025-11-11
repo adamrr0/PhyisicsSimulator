@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\arude\OneDrive\Documents\Libraries;C:\Users\arude\OneDrive\Documents\Libraries\glew-2.1.0\include\GL;C:\Users\arude\OneDrive\Documents\Libraries\glfw-3.4.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\arude\OneDrive\Documents\Libraries;C:\Users\arude\OneDrive\Documents\Libraries\glew-2.1.0\include\GL;C:\Users\arude\OneDrive\Documents\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\arude\OneDrive\Documents\Libraries\imgui-master;C:\Users\arude\OneDrive\Documents\Libraries\imgui-master\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,7 +119,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\arude\OneDrive\Documents\Libraries;C:\Users\arude\OneDrive\Documents\Libraries\glew-2.1.0\include\GL;C:\Users\arude\OneDrive\Documents\Libraries\glfw-3.4.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\arude\OneDrive\Documents\Libraries;C:\Users\arude\OneDrive\Documents\Libraries\glew-2.1.0\include\GL;C:\Users\arude\OneDrive\Documents\Libraries\glfw-3.4.bin.WIN64\include;C:\Users\arude\OneDrive\Documents\Libraries\imgui-master;C:\Users\arude\OneDrive\Documents\Libraries\imgui-master\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +129,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui.cpp" />
+    <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui_tables.cpp" />
+    <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
