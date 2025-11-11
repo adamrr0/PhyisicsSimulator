@@ -9,6 +9,9 @@
 #include<glm/gtc/type_ptr.hpp>
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
+#include<imgui.h>
+#include<backends/imgui_impl_glfw.h>
+#include<backends/imgui_impl_opengl3.h>
 #include "Camera.h"
 
 class Circle {
@@ -61,22 +64,23 @@ public:
 
 	void checkBounds(float dt)
 	{
+
 		if (position[0] + radius > 1.0f || position[0] - radius < -1.0f)
 		{
 			velocity[0] = -velocity[0];
 			position[0] += velocity[0] * dt;
 		}
-		if(position[1] + radius > 1.0f || position[1] - radius < -1.0f)
+		if(position[1] + radius > 0.75f || position[1] - radius < -0.75f)
 		{
 			velocity[1] = -velocity[1];
 			position[1] += velocity[1] * dt;
 		}
 	}
 
-	void gravity(float dt)
+	void Earthgravity(float dt)
 	{
-		const float G = 6.67430 * pow(10, -11); // Gravitational constant
-		velocity[1] += G * dt;
+		const float g = -9.81f; 
+		velocity[1] += g * dt;
 	}
 
 	void collision(Circle& c1, Circle& c2, float restitution)
@@ -104,27 +108,41 @@ public:
 			c1.velocity[1] -= (j / c1.mass) * ny;
 			c2.velocity[0] += (j / c2.mass) * nx;
 			c2.velocity[1] += (j / c2.mass) * ny;
-			std::cout << "Collision Detected" << std::endl;
+
+			float overlap = (c1.radius + c2.radius) - distance;
+			c1.position[0] -= (overlap / 2) * nx;
+			c1.position[1] -= (overlap / 2) * ny;
+			c2.position[0] += (overlap / 2) * nx;
+			c2.position[1] += (overlap / 2) * ny;
+
 		}
-		}
+	}
+
 };
+
 
 
 int main(void)
 {
+	// Primary variables
 	GLFWwindow* window;
 	float G = 6.67430 * pow(10, -11); // Gravitational constant
 	float screenwidth = 800;
 	float screenheight = 600;
 	int res = 100; // Resolution of circle
+	float centerX = 0.0f;
+	float centerY = 0.0f;
+	float radius = 0.1f;
+	float lastTime = glfwGetTime();
 
+	// Create Circles
 	std::vector<Circle> circles = {
 //			 |Starting Position     X     Y  |  |    Velocity       X     Y  |			Color		R	 G		B	   |Radius|   |      Mass     |
-		Circle(std::vector<float>{0.05f, 0.00f}, std::vector<float>{-0.5f, 0.00f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.05f    ,	5.97 * pow(10, 18)), // BLUE
-		Circle(std::vector<float>{-0.5f, 0.00f}, std::vector<float>{0.5f, 0.0f} , std::vector<float>{0.0f, 1.0f, 0.0f},   0.05f    ,  	5.97 * pow(10, 18))// GREEN 
+		Circle(std::vector<float>{0.5f, 0.5f}, std::vector<float>{0.5f, 0.5f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.05f    ,	1), // BLUE
+		Circle(std::vector<float>{-0.5f, -0.5f}, std::vector<float>{0.2f, 0.0f} , std::vector<float>{0.0f, 1.0f, 0.0f},   0.05f    ,  	1)// GREEN 
 	};
 	
-
+	// Initialize GLFW
 	if (!glfwInit())
 		return -1;
 
@@ -134,61 +152,98 @@ int main(void)
 		glfwTerminate();
 		return -1;
 	}
+	glfwMakeContextCurrent(window);
 
+	// ImGUI Setup
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+	// OpenGL Setup
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-1.0f, 1.0f, -1.0f * (screenheight / screenwidth), 1.0f * (screenheight / screenwidth), -1.0f, 1.0f);
 	glMatrixMode(GL_MODELVIEW);
 
-	glfwMakeContextCurrent(window);
-
-	float centerX = 0.0f;
-	float centerY = 0.0f;
-	float radius = 0.1f;
-	float lastTime = glfwGetTime();
-
-	Camera camera(screenwidth, screenheight, glm::vec3(0.0f, 0.0f, 0.0f));
-
 
 	while (!glfwWindowShouldClose(window))
 	{
+		// Render Setup
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// ImGUI Frame Start
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("Physics Simulator");
+		if (ImGui::Button("Add Circle"))	// Button to add circles
+		{
+			float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
+			circles.push_back(Circle(std::vector<float>{0.0f, 0.0f},
+						   			std::vector<float>{0.0f, 0.0f},
+									std::vector<float>{r, g, b},
+													0.05f, 1));
+		}
+		// Display circle information and gravity slider
+		ImGui::Text("Blue Ball Velocity (%.4f, %.4f)", circles[0].velocity[0], circles[0].velocity[1]);
+		ImGui::Text("Green Ball Velocity (%.2f, %.2f)", circles[1].velocity[0], circles[1].velocity[1]);
+		ImGui::Text("Blue Ball Position (%.2f, %.2f)", circles[0].position[0], circles[0].position[1]);
+		ImGui::Text("Green Ball Position (%.2f, %.2f)", circles[1].position[0], circles[1].position[1]);
+		ImGui::SliderAngle("Gravity", &G, -10.0f, 10.0f);
+		ImGui::End();
+
+		// Time calculation
 		float currentTime = glfwGetTime();
 		float dt = currentTime - lastTime;
 		lastTime = currentTime;
-
-		camera.Inputs(window);
-		camera.Matrix(45.0f, 0.1f, 100.0f);
 	
-		for (auto& circle : circles){
-			for (auto& circles2 : circles){
-				if (&circles2 == &circle) { continue; }
-				float dx = circles2.position[0] - circle.position[0];
-				float dy = circles2.position[1] - circle.position[1];
+		// Physics and Drawing
+		for (auto& a: circles){
+			for (auto& b: circles){
+				if (&a == &b) { continue; }
+				
+				float dx = b.position[0] - a.position[0];
+				float dy = b.position[1] - a.position[1];
 				float distance = sqrt(dx * dx + dy * dy);
-				std::vector<float> direction = { dx / distance, dy / distance };
-				distance *= 1e10f;
 
-				float Gforce = G * (circles2.mass * circle.mass) / (distance * distance);
-				float ax = Gforce * direction[0] / circle.mass;
-				float ay = Gforce * direction[1] / circle.mass;
-				std::vector<float>acc = { ax , ay };
+				//if (distance > 0) {
+				//	std::vector<float> direction = { dx / distance, dy / distance };
+				//	distance *= 1e10f;
 
-				circle.accelerate(acc[0], acc[1]);
-				circle.collision(circle, circles2, 0.9f);
+				//	float Gforce = G * (b.mass * a.mass) / (distance * distance);
+				//	float ax = Gforce * direction[0] / a.mass;
+				//	float ay = Gforce * direction[1] / a.mass;
+				//	std::vector<float>acc = { ax , ay };
+				//	a.accelerate(acc[0], acc[1]);
+				//}
+
+				a.collision(a, b, 0.9f);
+				a.Earthgravity(dt);
 				}
-			//circle.gravity(dt);
-			circle.checkBounds(dt);
-			circle.drawCircle(circle.position[0], circle.position[1], circle.radius, res);
-			circle.Position(dt);
+			a.checkBounds(dt);
+			a.drawCircle(a.position[0], a.position[1], a.radius, res);
+			a.Position(dt);
 		}
+
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	glfwTerminate();
 	return 0;
 
