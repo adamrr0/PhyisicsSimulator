@@ -16,12 +16,12 @@
 
 class Circle {
 public:
-	float dt = 0.016f; // Assuming a fixed time step for simplicity
 	float radius;
 	float mass;
 	std::vector<float> position = { 0.0f, 0.0f }; // x, y
 	std::vector<float> velocity = { 0.0f, 0.0f }; // vx, vy
 	std::vector<float> color = { 1.0f, 1.0f, 1.0f }; // r, g, b
+	std::vector<float> savedVelocity = { 0.0f , 0.0f }; // For pause / unpause
 
 	Circle(std::vector<float> pos, std::vector<float> vel, std::vector<float> col, float r, float m) : position(pos), velocity(vel), color(col), radius(r), mass(m)
 	{
@@ -32,7 +32,7 @@ public:
 		this->mass = m;
 	}
 
-	void accelerate(float ax, float ay)
+	void accelerate(float ax, float ay, float dt)
 	{
 		this->velocity[0] += ax * dt;
 		this->velocity[1] += ay * dt;
@@ -127,19 +127,29 @@ int main(void)
 	// Primary variables
 	GLFWwindow* window;
 	float G = 6.67430 * pow(10, -11); // Gravitational constant
+
 	float screenwidth = 800;
 	float screenheight = 600;
+
 	int res = 100; // Resolution of circle
 	float centerX = 0.0f;
 	float centerY = 0.0f;
 	float radius = 0.1f;
+
+	float startTime = glfwGetTime();
+	float pausedTime = 0.0f;
+	float pauseStart = 0.0f;
+	static bool pause = false;
 	float lastTime = glfwGetTime();
+	float simTime = 0.0f;
+
+
 
 	// Create Circles
 	std::vector<Circle> circles = {
 //			 |Starting Position     X     Y  |  |    Velocity       X     Y  |			Color		R	 G		B	   |Radius|   |      Mass     |
-		Circle(std::vector<float>{0.5f, 0.5f}, std::vector<float>{0.5f, 0.5f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.05f    ,	1), // BLUE
-		Circle(std::vector<float>{-0.5f, -0.5f}, std::vector<float>{0.2f, 0.0f} , std::vector<float>{0.0f, 1.0f, 0.0f},   0.05f    ,  	1)// GREEN 
+		Circle(std::vector<float>{0.0f, 0.0f}, std::vector<float>{0.00f, 0.0f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.05f    ,	1), // BLUE
+		Circle(std::vector<float>{0.5f, 0.0f}, std::vector<float>{-0.75f, 0.0f}, std::vector<float>{0.0f, 1.0f, 0.0f},   0.05f  ,  1)// GREEN 
 	};
 	
 	// Initialize GLFW
@@ -172,8 +182,48 @@ int main(void)
 
 	while (!glfwWindowShouldClose(window))
 	{
+		// Time calculation
+		float currentTime = glfwGetTime();
+		float dt = currentTime - lastTime;
+	
+		if (pause)
+		{
+			dt = 0.0f;
+			lastTime = currentTime;
+		}
+		else
+		{
+			lastTime = currentTime;
+			simTime += dt;
+		}
+
 		// Render Setup
 		glClear(GL_COLOR_BUFFER_BIT);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		
+		glm::vec3 point = { -1.0f , 1.0f , 0.2f };
+		std::vector<glm::vec3> points;
+		float spacing = 0.05f;
+
+		glPointSize(3.0f);
+
+		for (int col = 0; col < 100; col++) {
+
+			float x = -1.0f + col * spacing;
+
+			for (int row = 0; row < 100; row++)
+			{
+				float y = -0.9f + row * spacing;
+				points.push_back(glm::vec3(x, y, 0.0f));
+			}
+		}
+		glBegin(GL_POINTS);
+
+		for (auto dot : points)
+		{
+			glVertex2f(dot.x, dot.y);
+		}
+		glEnd();
 
 		// ImGUI Frame Start
 		ImGui_ImplOpenGL3_NewFrame();
@@ -191,47 +241,69 @@ int main(void)
 									std::vector<float>{r, g, b},
 													0.05f, 1));
 		}
+		if (ImGui::Button("Pause"))
+		{
+			pause = true;
+			pauseStart = glfwGetTime();
+			for (auto &c : circles)
+			{
+				c.savedVelocity = c.velocity;
+				c.velocity = { 0.0f, 0.0f };
+			}
+		}
+		if (ImGui::Button("Unpause"))
+		{
+			pause = false;
+			pausedTime += glfwGetTime() - pauseStart;
+			for (auto &c : circles)
+			{
+				c.velocity = c.savedVelocity;
+			}
+		}
 		// Display circle information and gravity slider
-		ImGui::Text("Blue Ball Velocity (%.4f, %.4f)", circles[0].velocity[0], circles[0].velocity[1]);
-		ImGui::Text("Green Ball Velocity (%.2f, %.2f)", circles[1].velocity[0], circles[1].velocity[1]);
+		ImGui::Text("Blue Ball Velocity (%.4f, %.4f)", circles[0].savedVelocity[0], circles[0].savedVelocity[1]);
+		ImGui::Text("Green Ball Velocity (%.2f, %.2f)", circles[1].savedVelocity[0], circles[1].savedVelocity[1]);
 		ImGui::Text("Blue Ball Position (%.2f, %.2f)", circles[0].position[0], circles[0].position[1]);
 		ImGui::Text("Green Ball Position (%.2f, %.2f)", circles[1].position[0], circles[1].position[1]);
-		ImGui::SliderAngle("Gravity", &G, -10.0f, 10.0f);
+		ImGui::Text("Time Elapsed: %.4f s", simTime);
 		ImGui::End();
 
-		// Time calculation
-		float currentTime = glfwGetTime();
-		float dt = currentTime - lastTime;
-		lastTime = currentTime;
+
 	
 		// Physics and Drawing
-		for (auto& a: circles){
-			for (auto& b: circles){
-				if (&a == &b) { continue; }
-				
-				float dx = b.position[0] - a.position[0];
-				float dy = b.position[1] - a.position[1];
-				float distance = sqrt(dx * dx + dy * dy);
+		if (!pause) {
+			simTime = glfwGetTime() - startTime - pausedTime;
+				for (auto& a : circles) {
+				for (auto& b : circles) {
+					if (&a == &b) { continue; }
 
-				//if (distance > 0) {
-				//	std::vector<float> direction = { dx / distance, dy / distance };
-				//	distance *= 1e10f;
+					float dx = b.position[0] - a.position[0];
+					float dy = b.position[1] - a.position[1];
+					float distance = sqrt(dx * dx + dy * dy);
 
-				//	float Gforce = G * (b.mass * a.mass) / (distance * distance);
-				//	float ax = Gforce * direction[0] / a.mass;
-				//	float ay = Gforce * direction[1] / a.mass;
-				//	std::vector<float>acc = { ax , ay };
-				//	a.accelerate(acc[0], acc[1]);
-				//}
+					if (distance > 0) {
+						std::vector<float> direction = { dx / distance, dy / distance };
+						distance *= 1e20f;
 
-				a.collision(a, b, 0.9f);
-				a.Earthgravity(dt);
+						float Gforce = G * (b.mass * a.mass) / (distance * distance);
+						float ax = Gforce * direction[0] / a.mass;
+						float ay = Gforce * direction[1] / a.mass;
+						std::vector<float>acc = { ax , ay };
+						a.accelerate(acc[0], acc[1], dt);
+					}
+
+					a.collision(a, b, 0.9f);
+					//a.Earthgravity(dt);
 				}
-			a.checkBounds(dt);
-			a.drawCircle(a.position[0], a.position[1], a.radius, res);
-			a.Position(dt);
+				a.checkBounds(dt);
+				a.Position(dt);
+			}
 		}
 
+		for (auto& a : circles)
+		{
+			a.drawCircle(a.position[0], a.position[1], a.radius, res);
+		}
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
