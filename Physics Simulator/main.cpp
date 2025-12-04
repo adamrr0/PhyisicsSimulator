@@ -12,7 +12,6 @@
 #include<imgui.h>
 #include<backends/imgui_impl_glfw.h>
 #include<backends/imgui_impl_opengl3.h>
-#include "Camera.h"
 
 class Circle {
 public:
@@ -136,20 +135,20 @@ int main(void)
 	float centerY = 0.0f;
 	float radius = 0.1f;
 
+	// GUI variables
 	float startTime = glfwGetTime();
 	float pausedTime = 0.0f;
 	float pauseStart = 0.0f;
 	static bool pause = false;
 	float lastTime = glfwGetTime();
 	float simTime = 0.0f;
-
-
+	float GlToMeters = 10.0f;
 
 	// Create Circles
 	std::vector<Circle> circles = {
-//			 |Starting Position     X     Y  |  |    Velocity       X     Y  |			Color		R	 G		B	   |Radius|   |      Mass     |
-		Circle(std::vector<float>{0.0f, 0.0f}, std::vector<float>{0.00f, 0.0f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.05f    ,	1), // BLUE
-		Circle(std::vector<float>{0.5f, 0.0f}, std::vector<float>{-0.75f, 0.0f}, std::vector<float>{0.0f, 1.0f, 0.0f},   0.05f  ,  1)// GREEN 
+//			 |Starting Position     X     Y  |  |    Velocity       X     Y  |			Color		R	   G	 B	   |Radius|   |      Mass     |
+		Circle(std::vector<float>{-0.5f, 0.0f}, std::vector<float>{0.25f, 0.0f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.05f    ,		  1),			// BLUE
+		Circle(std::vector<float>{0.5f, 0.0f}, std::vector<float>{-0.25f, 0.0f}, std::vector<float>{0.0f, 1.0f, 0.0f},   0.05f  ,		  1)			// GREEN 
 	};
 	
 	// Initialize GLFW
@@ -185,6 +184,11 @@ int main(void)
 		// Time calculation
 		float currentTime = glfwGetTime();
 		float dt = currentTime - lastTime;
+
+		// Random Colors
+		float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	
 		if (pause)
 		{
@@ -200,42 +204,26 @@ int main(void)
 		// Render Setup
 		glClear(GL_COLOR_BUFFER_BIT);
 		glColor3f(1.0f, 1.0f, 1.0f);
-		
-		glm::vec3 point = { -1.0f , 1.0f , 0.2f };
-		std::vector<glm::vec3> points;
-		float spacing = 0.05f;
 
-		glPointSize(3.0f);
-
-		for (int col = 0; col < 100; col++) {
-
-			float x = -1.0f + col * spacing;
-
-			for (int row = 0; row < 100; row++)
-			{
-				float y = -0.9f + row * spacing;
-				points.push_back(glm::vec3(x, y, 0.0f));
-			}
-		}
-		glBegin(GL_POINTS);
-
-		for (auto dot : points)
+		for (int i = 0; i <= 10; i++)
 		{
-			glVertex2f(dot.x, dot.y);
-		}
-		glEnd();
+			int meters = i - 5;
+			float x_lines = meters * 0.2;
 
-		// ImGUI Frame Start
+			glBegin(GL_LINES);
+			glVertex2f(x_lines, 1.0f);
+			glVertex2f(x_lines, -1.0f);
+			glEnd();
+		}
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+	
+		// ImGUI Frame Start
 		ImGui::Begin("Physics Simulator");
 		if (ImGui::Button("Add Circle"))	// Button to add circles
 		{
-			float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-
 			circles.push_back(Circle(std::vector<float>{0.0f, 0.0f},
 						   			std::vector<float>{0.0f, 0.0f},
 									std::vector<float>{r, g, b},
@@ -260,16 +248,15 @@ int main(void)
 				c.velocity = c.savedVelocity;
 			}
 		}
+
 		// Display circle information and gravity slider
-		ImGui::Text("Blue Ball Velocity (%.4f, %.4f)", circles[0].savedVelocity[0], circles[0].savedVelocity[1]);
-		ImGui::Text("Green Ball Velocity (%.2f, %.2f)", circles[1].savedVelocity[0], circles[1].savedVelocity[1]);
-		ImGui::Text("Blue Ball Position (%.2f, %.2f)", circles[0].position[0], circles[0].position[1]);
-		ImGui::Text("Green Ball Position (%.2f, %.2f)", circles[1].position[0], circles[1].position[1]);
+		ImGui::Text("Blue Ball Velocity (%.2f, %.2f) m/s", circles[0].velocity[0] * GlToMeters, circles[0].velocity[1] * GlToMeters);
+		ImGui::Text("Green Ball Velocity (%.2f, %.2f) m/s", circles[1].velocity[0] * GlToMeters, circles[1].velocity[1] * GlToMeters);
+		ImGui::Text("Blue Ball Position (%.2f, %.2f) m", circles[0].position[0] * GlToMeters, circles[0].position[1] * GlToMeters);
+		ImGui::Text("Green Ball Position (%.2f, %.2f) m", circles[1].position[0] * GlToMeters, circles[1].position[1] * GlToMeters);
 		ImGui::Text("Time Elapsed: %.4f s", simTime);
 		ImGui::End();
 
-
-	
 		// Physics and Drawing
 		if (!pause) {
 			simTime = glfwGetTime() - startTime - pausedTime;
@@ -313,6 +300,8 @@ int main(void)
 		glfwPollEvents();
 	}
 
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();

@@ -135,11 +135,9 @@
     <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui_draw.cpp" />
     <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\Documents\Libraries\imgui-master\imgui_widgets.cpp" />
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="CircleClass.h" />
   </ItemGroup>
   <ItemGroup>
