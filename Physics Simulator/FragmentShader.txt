@@ -1,0 +1,27 @@
+#version 330 core
+
+in vec3 Normal;
+in vec3 FragPos;
+
+out vec4 FragColor;
+
+uniform vec3 sphereColor;
+uniform vec3 lightPos;
+uniform vec3 lightColor;
+
+void main()
+{
+    // Normalize normals
+    vec3 norm = normalize(Normal);
+
+    // Light direction (simple directional light toward camera)
+    vec3 lightDir = normalize(lightPos - FragPos);
+
+    // Lambertian diffuse
+    float diff = max(dot(norm, lightDir), 0.0);
+    float ambient = 0.3;
+
+    vec3 result = (0.2 + diff) * sphereColor * lightColor;
+
+    FragColor = vec4(result, 1.0);
+}
