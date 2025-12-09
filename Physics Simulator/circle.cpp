@@ -23,7 +23,7 @@ glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 	return glm::vec3(x, y, z);
 }
 
-	std::vector<float> Circle::sphereVertices(int stacks, int sectors)
+	std::vector<float> Circle::sphereVertices(int stacks, int sectors) const
 	{
 		std::vector<float> vertices;
 
@@ -59,15 +59,6 @@ glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 		return vertices;
 	}
 
-	Circle::Circle(std::vector<float> pos, std::vector<float> vel, std::vector<float> col, float r, float m) : position(pos), velocity(vel), color(col), radius(r), mass(m)
-	{
-		this->position = pos;
-		this->velocity = vel;
-		this->color = col;
-		this->radius = r;
-		this->mass = m;
-	}
-
 	void Circle::initSphereMesh()
 	{
 		std::vector<float> verts = sphereVertices();
@@ -98,7 +89,6 @@ glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(position[0], position[1], 0.0f));
-		model = glm::scale(model, glm::vec3(radius, radius, radius));
 
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -112,33 +102,39 @@ glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 	}
 
 
-	void Circle::accelerate(float ax, float ay, float dt)
+	void Circle::accelerate(float ax, float ay, float az, float dt)
 	{
 		this->velocity[0] += ax * dt;
 		this->velocity[1] += ay * dt;
+		this->velocity[2] += az * dt;
 	}
 
 	void Circle::Position(float dt)
 	{
 		this->position[0] += this->velocity[0] * dt;
 		this->position[1] += this->velocity[1] * dt;
-
+		this->position[2] += this->velocity[2] * dt;
 	}
 
-	void Circle::checkBounds(float dt)
-	{
+	//void Circle::checkBounds(float dt)
+	//{
 
-		if (position[0] + radius > 1.0f || position[0] - radius < -1.0f)
-		{
-			velocity[0] = -velocity[0];
-			position[0] += velocity[0] * dt;
-		}
-		if (position[1] + radius > 0.75f || position[1] - radius < -0.75f)
-		{
-			velocity[1] = -velocity[1];
-			position[1] += velocity[1] * dt;
-		}
-	}
+	//	if (position[0] + radius > 1.0f || position[0] - radius < -1.0f)
+	//	{
+	//		velocity[0] = -velocity[0];
+	//		position[0] += velocity[0] * dt;
+	//	}
+	//	if (position[1] + radius > 1.0f || position[1] - radius < -1.0f)
+	//	{
+	//		velocity[1] = -velocity[1];
+	//		position[1] += velocity[1] * dt;
+	//	}
+	//	if (position[2] + radius > 1.0f || position[2] - radius < -1.0f)
+	//	{
+	//		velocity[2] = -velocity[2];
+	//		position[2] += velocity[2] * dt;
+	//	}
+	//}
 
 	void Circle::Earthgravity(float dt)
 	{
@@ -152,21 +148,20 @@ glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 		float dy = c2.position[1] - c1.position[1]; // Y distance between circles
 		float distance = sqrt((dx * dx) + (dy * dy)); // Distance between circles
 
-		float nx = dx / distance;	// Normalized X
-		float ny = dy / distance;	// Normalized Y
-
-		float rvx = c2.velocity[0] - c1.velocity[0];	// Relative X velocity
-		float rvy = c2.velocity[1] - c1.velocity[1];	// Relative Y velocity
-
-		float vrel = rvx * nx + rvy * ny;	// Relative velocity in terms of the normal direction
-
-
-		float j = -(1 + restitution) * vrel / ((1 / c1.mass) + (1 / c2.mass));	// Impulse
-
 		if (distance == 0) { return; }
 
 		if (distance <= c1.radius + c2.radius)
 		{
+			float nx = dx / distance;	// Normalized X
+			float ny = dy / distance;	// Normalized Y
+
+			float rvx = c2.velocity[0] - c1.velocity[0];	// Relative X velocity
+			float rvy = c2.velocity[1] - c1.velocity[1];	// Relative Y velocity
+
+			float vrel = rvx * nx + rvy * ny;	// Relative velocity in terms of the normal direction
+
+			float j = -(1 + restitution) * vrel / ((1 / c1.mass) + (1 / c2.mass));	// Impulse
+
 			c1.velocity[0] -= (j / c1.mass) * nx;
 			c1.velocity[1] -= (j / c1.mass) * ny;
 			c2.velocity[0] += (j / c2.mass) * nx;

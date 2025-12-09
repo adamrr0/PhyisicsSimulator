@@ -22,9 +22,9 @@ Camera camera(glm::vec3(0.0f, 0.0f, 4.0f));
 
 // Create Circles
 std::vector<Circle> circles = {
-	//			 |Starting Position     X     Y  |  |    Velocity       X     Y  |			Color		R	   G	 B	   |Radius|   |      Mass     |
-			Circle(std::vector<float>{-0.5f, 0.0f}, std::vector<float>{0.25f, 0.0f}, std::vector<float>{0.0f, 0.0f, 1.0f},   0.15f    ,		10),			// BLUE
-			Circle(std::vector<float>{0.5f, 0.0f}, std::vector<float>{-0.25f, 0.0f}, std::vector<float>{0.0f, 1.0f, 0.0f},   0.15f  ,		10)			// GREEN 
+	//			 |Starting Position     X     Y      Z|  |    Velocity       X       Y       Z|			Color		R	   G	 B	   |Radius|   |      Mass     |
+			Circle(std::vector<float>{0.0f, 0.0f, 0.0f}, std::vector<float>{0.0f, 0.0f, 0.0f}, std::vector<float>{0.0f, 0.0f, 1.0f},   1.0f    ,		5),		// BLUE
+			Circle(std::vector<float>{10.0f, 0.0f, -1000.0f}, std::vector<float>{-1.0f, 0.0f, 0.0f}, std::vector<float>{0.0f, 1.0f, 0.0f},   0.15f  ,		5)			// GREEN 
 };
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -189,8 +189,8 @@ int main(void)
 		ImGui::Begin("Physics Simulator");
 		if (ImGui::Button("Add Circle"))	// Button to add circles
 		{
-			circles.push_back(Circle(std::vector<float>{0.0f, 0.0f},
-						   			std::vector<float>{0.0f, 0.0f},
+			circles.push_back(Circle(std::vector<float>{0.0f, 0.0f, 0.0f},
+						   			std::vector<float>{0.0f, 0.0f, 0.0f},
 									std::vector<float>{r, g, b},
 													0.05f, 1));
 		}
@@ -201,7 +201,7 @@ int main(void)
 			for (auto &c : circles)
 			{
 				c.savedVelocity = c.velocity;
-				c.velocity = { 0.0f, 0.0f };
+				c.velocity = { 0.0f, 0.0f, 0.0f };
 			}
 		}
 		if (ImGui::Button("Unpause"))
@@ -231,22 +231,23 @@ int main(void)
 
 					float dx = b.position[0] - a.position[0];
 					float dy = b.position[1] - a.position[1];
-					float distance = sqrt(dx * dx + dy * dy);
+					float dz = b.position[2] - a.position[2];
+					float distance = sqrt(dx * dx + dy * dy + dz * dz);
 
 					if (distance > 0) {
-						std::vector<float> direction = { dx / distance, dy / distance };
-				
+						std::vector<float> direction = { dx / distance, dy / distance, dz / distance };
 						float Gforce = G * (b.mass * a.mass) / (distance * distance);
 						float ax = Gforce * direction[0] / a.mass;
 						float ay = Gforce * direction[1] / a.mass;
-						std::vector<float>acc = { ax , ay };
-						a.accelerate(acc[0], acc[1], dt);
+						float az = Gforce * direction[2] / a.mass;
+						std::vector<float>acc = { ax , ay , az};
+						a.accelerate(acc[0], acc[1], acc[2], dt);
 					}
 
 					a.collision(a, b, 1.0f);	// 0.0f = inelastic, 1.0f = elastic
 				//	a.Earthgravity(dt);
 				}
-				a.checkBounds(dt);
+				//a.checkBounds(dt);
 				a.Position(dt);
 			}
 		}

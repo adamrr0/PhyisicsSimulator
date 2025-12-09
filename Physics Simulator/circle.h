@@ -18,18 +18,28 @@ public:
 	GLuint sphereVAO = 0, sphereVBO = 0;
 	int sphereVertexCount;
 
-	Circle(std::vector<float> pos,
-		   std::vector<float> vel, 
-		   std::vector<float> col, 
-		   float r, 
-		   float m);
-
 	void initSphereMesh();
-	std::vector<float> sphereVertices(int stacks = 30, int sectors = 30);
-	void accelerate(float ax, float ay, float dt);
+	std::vector<float> sphereVertices(int stacks = 30, int sectors = 30) const;
+	void accelerate(float ax, float ay, float az, float dt);
 	void Position(float dt);
 	void checkBounds(float dt);
 	void Earthgravity(float dt);
 	void collision(Circle& a, Circle& b, float elasticity);
 	void drawSphere(GLuint shader, glm::mat4& view, glm::mat4 projection);
+
+	    Circle(std::vector<float> pos, std::vector<float> vel, std::vector<float> col, float r, float m)
+        : radius(r), mass(m), position(std::move(pos)), velocity(std::move(vel)), color(std::move(col))
+    {
+        ensure3(position);
+        ensure3(velocity);
+        ensure3(color);
+        ensure3(savedVelocity); 
+	}
+
+private:
+    static void ensure3(std::vector<float>& v) {
+        if (v.size() < 3) v.resize(3, 0.0f);
+    }
+
+
 };
