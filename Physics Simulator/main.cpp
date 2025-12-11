@@ -22,9 +22,9 @@ Camera camera(glm::vec3(0.0f, 0.0f, 4.0f));
 
 // Create Circles
 std::vector<Circle> circles = {
-	//			 |Starting Position     X     Y      Z|  |    Velocity       X       Y       Z|			Color		R	   G	 B	   |Radius|   |      Mass     |
-			Circle(std::vector<float>{0.0f, 0.0f, 0.0f}, std::vector<float>{0.0f, 0.0f, 0.0f}, std::vector<float>{0.0f, 0.0f, 1.0f},   1.0f    ,		5),		// BLUE
-			Circle(std::vector<float>{10.0f, 0.0f, -1000.0f}, std::vector<float>{-1.0f, 0.0f, 0.0f}, std::vector<float>{0.0f, 1.0f, 0.0f},   0.15f  ,		5)			// GREEN 
+	// |Starting Position     X     Y      Z|  | Velocity  X      Y     Z|	 Color		R	   G	B	   A	  |Radius|   |Mass|
+			Circle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec4{0.0f, 0.0f, 1.0f , 1.0f},   1.0f    ,   5),		// BLUE
+			Circle(glm::vec3{10.0f, 0.0f, 0.0f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec4{0.0f, 1.0f, 0.0f , 0.0f},   0.15f   ,   5)			// GREEN 
 };
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -187,13 +187,6 @@ int main(void)
 	
 		// ImGUI Frame Start
 		ImGui::Begin("Physics Simulator");
-		if (ImGui::Button("Add Circle"))	// Button to add circles
-		{
-			circles.push_back(Circle(std::vector<float>{0.0f, 0.0f, 0.0f},
-						   			std::vector<float>{0.0f, 0.0f, 0.0f},
-									std::vector<float>{r, g, b},
-													0.05f, 1));
-		}
 		if (ImGui::Button("Pause"))
 		{
 			pause = true;

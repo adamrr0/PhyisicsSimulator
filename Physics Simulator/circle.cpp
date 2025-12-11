@@ -18,14 +18,16 @@
 glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 {
 	float x = r * sin(theta) * cos(phi);
-	float y = r * sin(theta) * sin(phi);
-	float z = r * cos(theta);
+	float y = r * cos(theta);
+	float z = r * sin(theta) * sin(phi);
 	return glm::vec3(x, y, z);
 }
 
-	std::vector<float> Circle::sphereVertices(int stacks, int sectors) const
+	std::vector<float> Circle::sphereVertices()
 	{
 		std::vector<float> vertices;
+		float stacks = 100;
+		float sectors = 100;
 
 		for (int i = 0; i <= stacks; i++)
 		{
@@ -37,23 +39,23 @@ glm::vec3 sphericalToCartesian(float r, float theta, float phi)
 				float phi1 = (float)j / sectors * 2.0f * glm::pi<float>();
 				float phi2 = (float)(j + 1) / sectors * 2.0f * glm::pi<float>();
 
-				glm::vec3 v1 = sphericalToCartesian(radius, theta1, phi1);
-				glm::vec3 v2 = sphericalToCartesian(radius, theta2, phi1);
-				glm::vec3 v3 = sphericalToCartesian(radius, theta2, phi2);
-				glm::vec3 v4 = sphericalToCartesian(radius, theta1, phi2);
+				glm::vec3 v1 = sphericalToCartesian(this->radius, theta1, phi1);
+				glm::vec3 v2 = sphericalToCartesian(this->radius, theta2, phi1);
+				glm::vec3 v3 = sphericalToCartesian(this->radius, theta2, phi2);
+				glm::vec3 v4 = sphericalToCartesian(this->radius, theta1, phi2);
 
 				glm::vec3 n1 = glm::normalize(v1);
 				glm::vec3 n2 = glm::normalize(v2);
 				glm::vec3 n3 = glm::normalize(v3);
 				glm::vec3 n4 = glm::normalize(v4);
 
-				vertices.insert(vertices.end(), { v1.x, v1.y, v1.z, n1.x, n1.y, n1.z });
-				vertices.insert(vertices.end(), { v2.x, v2.y, v2.z, n2.x, n2.y, n2.z });
-				vertices.insert(vertices.end(), { v3.x, v3.y, v3.z, n3.x, n3.y, n3.z });
+            vertices.insert(vertices.end(), { v1.x, v1.y, v1.z, n1.x, n1.y, n1.z });
+            vertices.insert(vertices.end(), { v2.x, v2.y, v2.z, n2.x, n2.y, n2.z });
+            vertices.insert(vertices.end(), { v3.x, v3.y, v3.z, n3.x, n3.y, n3.z });
 
-				vertices.insert(vertices.end(), { v2.x, v2.y, v2.z, n2.x, n2.y, n2.z });
-				vertices.insert(vertices.end(), { v4.x, v4.y, v4.z, n4.x, n4.y, n4.z });
-				vertices.insert(vertices.end(), { v3.x, v3.y, v3.z, n3.x, n3.y, n3.z });
+            vertices.insert(vertices.end(), { v1.x, v1.y, v1.z, n1.x, n1.y, n1.z });
+            vertices.insert(vertices.end(), { v3.x, v3.y, v3.z, n3.x, n3.y, n3.z });
+            vertices.insert(vertices.end(), { v4.x, v4.y, v4.z, n4.x, n4.y, n4.z });
 			}
 		}
 		return vertices;

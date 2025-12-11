@@ -10,16 +10,16 @@ class Circle {
 public:
 	float radius;
 	float mass;
-	std::vector<float> position;
-	std::vector<float> velocity;
-	std::vector<float> color;
-	std::vector<float> savedVelocity;
+	glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 savedVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	GLuint sphereVAO = 0, sphereVBO = 0;
 	int sphereVertexCount;
 
 	void initSphereMesh();
-	std::vector<float> sphereVertices(int stacks = 30, int sectors = 30) const;
+	std::vector<float> sphereVertices();
 	void accelerate(float ax, float ay, float az, float dt);
 	void Position(float dt);
 	void checkBounds(float dt);
@@ -27,14 +27,16 @@ public:
 	void collision(Circle& a, Circle& b, float elasticity);
 	void drawSphere(GLuint shader, glm::mat4& view, glm::mat4 projection);
 
-	    Circle(std::vector<float> pos, std::vector<float> vel, std::vector<float> col, float r, float m)
-        : radius(r), mass(m), position(std::move(pos)), velocity(std::move(vel)), color(std::move(col))
-    {
-        ensure3(position);
-        ensure3(velocity);
-        ensure3(color);
-        ensure3(savedVelocity); 
+
+	Circle(glm::vec3 initPos, glm::vec3 initVel, glm::vec4 col, float r, float m)
+	{
+		this->position = initPos;
+		this->velocity = initVel;
+		this->color = col;
+		this->radius = r;
+		this->mass = m;
 	}
+
 
 private:
     static void ensure3(std::vector<float>& v) {

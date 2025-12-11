@@ -15,7 +15,7 @@ void main()
     vec3 norm = normalize(Normal);
 
     // Light direction (simple directional light toward camera)
-    vec3 lightDir = normalize(lightPos - FragPos);
+    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
 
     // Lambertian diffuse
     float diff = max(dot(norm, lightDir), 0.0);
